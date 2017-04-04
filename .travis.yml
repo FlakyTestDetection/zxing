@@ -21,7 +21,7 @@ cache:
 git:
   depth: 10
 after_success: if [ -n "$JACOCO" ]; then bash <(curl -s https://codecov.io/bash); fi
-
+ 
 # The Android SDK package android-sdk-linux.tar.bz2 above is built roughly like so:
 #
 # mkdir android-sdk-linux; cd android-sdk-linux
