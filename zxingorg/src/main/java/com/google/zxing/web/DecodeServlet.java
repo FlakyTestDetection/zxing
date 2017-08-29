@@ -83,7 +83,7 @@ import javax.servlet.http.Part;
 @MultipartConfig(
     maxFileSize = 1L << 26, // ~64MB
     maxRequestSize = 1L << 26, // ~64MB
-    fileSizeThreshold = 1 << 20, // ~1MB
+    fileSizeThreshold = 1 << 23, // ~8MB
     location = "/tmp")
 @WebServlet(value = "/w/decode", loadOnStartup = 1)
 public final class DecodeServlet extends HttpServlet {
@@ -92,8 +92,8 @@ public final class DecodeServlet extends HttpServlet {
 
   // No real reason to let people upload more than ~64MB
   private static final long MAX_IMAGE_SIZE = 1L << 26;
-  // No real reason to deal with more than ~64 megapixels
-  private static final int MAX_PIXELS = 1 << 26;
+  // No real reason to deal with more than ~32 megapixels
+  private static final int MAX_PIXELS = 1 << 25;
   private static final byte[] REMAINDER_BUFFER = new byte[1 << 16];
   private static final Map<DecodeHintType,Object> HINTS;
   private static final Map<DecodeHintType,Object> HINTS_PURE;
@@ -234,6 +234,13 @@ public final class DecodeServlet extends HttpServlet {
         }
         if (connection.getHeaderFieldInt(HttpHeaders.CONTENT_LENGTH, 0) > MAX_IMAGE_SIZE) {
           log.info("Too large");
+          errorResponse(request, response, "badimage");
+          return;
+        }
+        // Assume we'll only handle image/* content types
+        String contentType = connection.getContentType();
+        if (contentType != null && !contentType.startsWith("image/")) {
+          log.info("Wrong content type: " + contentType);
           errorResponse(request, response, "badimage");
           return;
         }
